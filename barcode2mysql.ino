@@ -30,6 +30,7 @@ int curMode = 0;
 String curLoc = "";
 String curBarCode = "";
 int curQty = 1;
+bool globalActive = false;
 
 int isNewBC(String inBarCode) {
   const char QUERY_BC[] = "SELECT Barcode FROM PartsDB.Parts WHERE Barcode = '%s';";
@@ -169,13 +170,38 @@ void dispMode() {
   else if (curMode == 1) { lcd.print("Add               "); }
   else if (curMode == 2) { lcd.print("Take              "); }
   else if (curMode == 3) { lcd.print("Remove            "); }
-  else if (curMode == 4) { lcd.print("Move              "); }
+  else if (curMode == 4) { lcd.print("Change            "); }
 }
 
 void dispBarCode() {
   lcd.setCursor(0,3);
   lcd.print("B:");
   lcd.print(curBarCode);
+}
+
+void modeActive() {
+    
+  // Begin WiFi section
+  int status = WiFi.begin(ssid, pass);
+  if ( status != WL_CONNECTED) {
+    lcd.setBacklight(LOW);
+    lcd.print("W:X");
+    globalActive = false;
+    while(true);
+  } else {
+    lcd.setBacklight(HIGH);
+    lcd.print("W:OK");
+    globalActive = true;
+  }
+  // End WiFi section
+  
+  curMode = 0;
+  curLoc = "";
+  curBarCode = "";
+  dispMode();
+  dispLoc();
+  dispBarCode();
+  
 }
 
 void procTask() {
@@ -195,7 +221,7 @@ void procTask() {
           updateExisting(curBarCode,(storedQtyTake - curQty));
         }
       }
-    } else if (curMode == 3) { // Move
+    } else if (curMode == 3) { // Change
       if (isNewBC(curBarCode) == 1) { // must be there to move
         updateMove(curBarCode, curLoc);
       }
@@ -213,7 +239,7 @@ void procBarCode(String inBarCode, String inQty) {
       curMode = 2;
     } else if (inBarCode.endsWith("remove") == true) {
       curMode = 3;
-    } else if (inBarCode.endsWith("move") == true) {
+    } else if (inBarCode.endsWith("change") == true) {
       curMode = 4;
     }
     dispMode();
@@ -233,18 +259,9 @@ void setup() {
   //Serial.begin(115200);
   Serial1.begin(115200);
   lcd.begin(20, 4);
-  lcd.setBacklight(HIGH);
+  lcd.setBacklight(LOW);
   lcd.setCursor(0,0);
-  
-  // Begin WiFi section
-  int status = WiFi.begin(ssid, pass);
-  if ( status != WL_CONNECTED) {
-    lcd.print("W:X");
-    while(true);
-  } else {
-    lcd.print("W:OK");
-  }
-  // End WiFi section
+  modeActive();
 }
 
 void loop() {
