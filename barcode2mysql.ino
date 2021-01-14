@@ -18,6 +18,8 @@ char password[] = "XXXXXXXX";        // MySQL user login password
 char ssid[] = "XXXXXXXX";    // your SSID
 char pass[] = "XXXXXXXX";       // your SSID Password
 
+
+
 WiFiClient client;
 MySQL_Connection conn((Client *)&client);
 
@@ -261,6 +263,8 @@ void setup() {
   lcd.begin(20, 4);
   lcd.setBacklight(LOW);
   lcd.setCursor(0,0);
+  //Configure pins for Adafruit ATWINC1500 Breakout
+  WiFi.setPins(53,49,48);
   modeActive();
 }
 
