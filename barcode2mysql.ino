@@ -3,17 +3,18 @@
 #include <WiFi101.h>
 #include "Wire.h"
 #include "Adafruit_LiquidCrystal.h"
+#include "arduino_secrets.h"
 
 
 Adafruit_LiquidCrystal lcd(0);
 
-byte mac_addr[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
+byte mac_addr[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFC, 0x0E };
 
 char server[] = "www.tjfhome.net";
 
 // WiFi card example
-char ssid[] = "XXXXXXXX";    // your SSID
-char pass[] = "XXXXXXXX";       // your SSID Password
+char ssid[] = SECRET_SSID;
+char pass[] = SECRET_PASS;
 
 
 
@@ -99,14 +100,13 @@ void modeActive() {
   int status = WiFi.begin(ssid, pass);
   if ( status != WL_CONNECTED) {
     lcd.setBacklight(LOW);
-    lcd.print("W:X");
+    Serial.print("W:X");
     globalActive = false;
-    while(true);
-  } else {
-    lcd.setBacklight(HIGH);
-    lcd.print("W:OK");
-    globalActive = true;
+    while(status != WL_CONNECTED);
   }
+  lcd.setBacklight(HIGH);
+  Serial.print("W:OK");
+  globalActive = true;
   // End WiFi section
   
   curMode = 0;
@@ -158,13 +158,13 @@ void procBarCode(String inBarCode, String inQty) {
 }
 
 void setup() {
-  //Serial.begin(115200);
+  Serial.begin(9600);
   Serial1.begin(115200);
   lcd.begin(20, 4);
   lcd.setBacklight(LOW);
   lcd.setCursor(0,0);
   //Configure pins for Adafruit ATWINC1500 Breakout
-  WiFi.setPins(53,49,48);
+  WiFi.setPins(53,48,49);
   modeActive();
 }
 
@@ -172,6 +172,7 @@ void loop() {
   if (Serial1.available() > 0) {
     // get incoming byte:
     inByte = Serial1.read();
+    Serial.print(inByte);
     if (inByte == 0x0d && rxBarCode.length() <= 0) { // [Enter] without data
       // start data
       rxBarCode = "";
